@@ -18,7 +18,7 @@ app.use((req, res, next) => {
         'Origin, X-Requested-With, Content-Type, Accept, Authorization'
     );
     res.setHeader('Access-Control-Allow-Methods',
-        'GET, POST, PATCH, DELETE, OPTIONS'
+        'GET, POST, PATCH, DELETE, OPTIONS, PUT'
     );
     next();
 });
@@ -34,12 +34,10 @@ app.get("/login", (req, res) => {
     // filter all user and if server finds the correct one it will send a response
     User.findOne({ userName: requestUserName, password: requestPassword })
         .then((result) => {
-            res.json({ user: {
-                    requestUserName,
-                    requestPassword,
-                } });
+            res.json({ user: result });
         })
         .catch((error) => {
+            console.log(error);
             res.status(404).json({ user: null }); // if the user data wasnt rigth, then server will send null to the client
         });
 });
@@ -51,4 +49,20 @@ app.post("/signup", (req, res) => {
     user.save()
         .then(result => res.json({ user })) // after succesful save returns data about user
         .catch(error => console.log(error)); // print error into console
+});
+
+app.put("/myfavorite", (req, res) => {
+   // dostanem potrebne udaje z body
+   const userName = req.body.userName;
+   const restaurantDetail = req.body.restaurantDetail;
+
+   // najdem pouzivatela, ktoremu chcem pridat restauraciu do oblubenych
+   User.findOneAndUpdate({ userName })
+       .then(result => {
+           result.favoriteRestaurants.unshift(restaurantDetail); // novu restauraciu pridam na zaciatok Array listu
+           result.save()
+               .then(result => res.json({ user: result }))// server vrati uz updatnuteho pouzivatela
+               .catch(error => console.log(error));
+       })
+       .catch(error => console.log(error));
 });

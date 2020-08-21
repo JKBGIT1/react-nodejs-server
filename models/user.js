@@ -23,7 +23,7 @@ const UserSchema = new mongoose.Schema({
     },
     favoriteRestaurants: {
         type: Array,
-        default: [],
+        default: null,
     }
 });
 
