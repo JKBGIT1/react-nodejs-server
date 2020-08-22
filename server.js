@@ -8,7 +8,7 @@ const app = express();
 
 // URL to DB and connection
 const URI = "mongodb+srv://dbUser:dbUser@cluster0.aiodd.mongodb.net/Cluster0?retryWrites=true&w=majority";
-mongoose.connect(URI, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(URI, { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false })
     .then(result => app.listen(5000)) // after succesful connection to DB starts server on port localhost:5000
     .catch(error => console.log(error));
 
@@ -57,12 +57,33 @@ app.put("/myfavorite", (req, res) => {
    const restaurantDetail = req.body.restaurantDetail;
 
    // najdem pouzivatela, ktoremu chcem pridat restauraciu do oblubenych
-   User.findOneAndUpdate({ userName })
+   User.findOne({ userName: userName })
        .then(result => {
            result.favoriteRestaurants.unshift(restaurantDetail); // novu restauraciu pridam na zaciatok Array listu
+           console.log(result.userName);
            result.save()
                .then(result => res.json({ user: result }))// server vrati uz updatnuteho pouzivatela
                .catch(error => console.log(error));
        })
        .catch(error => console.log(error));
+});
+
+app.delete("/myfavorite", (req, res) => {
+    const { userName } = req.body;
+    const { restaurantId } = req.body;
+
+    // najdem pouzivatela, ktory chce odobrat restauraciu zo svojho oblubeneho listu
+    User.findOne({ userName: userName })
+        .then(result => {
+            // vytvorim novy array tym, ze prefiltrujem cely stary a ulozim donho iba restauracie, ktorzch id sa nezhoduje
+            result.favoriteRestaurants = result.favoriteRestaurants.filter((restaurant) => {
+                if (restaurant.id !== restaurantId)
+                    return restaurant;
+            });
+            // nasledne ulozim upravene data o pouzivatelovi a ako odpoved vratim jeho nove data
+            result.save()
+                .then(result => res.json({ user: result }))
+                .catch(error => console.log(error));
+        })
+        .catch(error => console.log(error));
 });
