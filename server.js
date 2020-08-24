@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const express = require("express");
 const bodyParser = require("body-parser"); // required for reading data inside request body
+const serverless = require('serverless-http');
 
 const User = require("./models/user"); // model of users, who are saved into DB
 
@@ -9,7 +10,7 @@ const app = express();
 // URL to DB and connection
 const URI = "mongodb+srv://dbUser:dbUser@cluster0.aiodd.mongodb.net/Cluster0?retryWrites=true&w=majority";
 mongoose.connect(URI, { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false })
-    .then(result => app.listen(5000)) // after succesful connection to DB starts server on port localhost:5000
+    .then(result => serverless(app)) // after succesful connection to DB starts server on port localhost:5000
     .catch(error => console.log(error));
 
 app.use((req, res, next) => {
