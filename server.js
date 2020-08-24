@@ -24,7 +24,7 @@ app.use((req, res, next) => {
 });
 
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json())
+app.use(bodyParser.json());
 
 app.get("/login", (req, res) => {
     // get query parameters
@@ -38,17 +38,23 @@ app.get("/login", (req, res) => {
         })
         .catch((error) => {
             console.log(error);
-            res.status(404).json({ user: null }); // if the user data wasnt rigth, then server will send null to the client
+            res.json({ user: null }); // if the user data wasnt rigth, then server will send null to the client
         });
 });
 
 app.post("/signup", (req, res) => {
-    const user = new User(req.body); // get data about new user
+    const userName = req.body.userName;
+    // if user exists, then server will return null
+    User.find({ userName: userName })
+        .then(() => res.json({ user: null }))
+        .catch(() => {
+            // otherwise new user will be created and data about him will be send bac
+            const user = new User(req.body); // get data about new user
 
-    // save new user into DB
-    user.save()
-        .then(result => res.json({ user })) // after succesful save returns data about user
-        .catch(error => console.log(error)); // print error into console
+            user.save()
+                .then(result => res.json({ user })) // after succesful save returns data about user
+                .catch(error => console.log(error)); // print error into console
+        });
 });
 
 app.put("/myfavorite", (req, res) => {
