@@ -1,22 +1,13 @@
-'use strict';
 const express = require('express');
-const path = require('path');
-const serverless = require('serverless-http');
 const app = express();
 const bodyParser = require('body-parser');
-const User = require("../models/user"); // model of users, who are saved into DB
-
-const router = express.Router();
-router.get('/', (req, res) => {
-    res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.write('<h1>Hello from Express.js!</h1>');
-    res.end();
-});
+const mongoose = require("mongoose");
+const User = require("./models/user"); // model of users, who are saved into DB
 
 // URL to DB and connection
 const URI = "mongodb+srv://dbUser:dbUser@cluster0.aiodd.mongodb.net/Cluster0?retryWrites=true&w=majority";
 mongoose.connect(URI, { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false })
-    .then(result => console.log("DB is connected")) // after succesful connection to DB starts server on port localhost:5000
+    .then(result => app.listen(5000)) // after succesful connection to DB starts server on port localhost:5000
     .catch(error => console.log(error));
 
 app.use((req, res, next) => {
@@ -57,7 +48,6 @@ app.post("/signup", (req, res) => {
         .catch(() => {
             // otherwise new user will be created and data about him will be send bac
             const user = new User(req.body); // get data about new user
-
             user.save()
                 .then(result => res.json({ user })) // after succesful save returns data about user
                 .catch(error => console.log(error)); // print error into console
@@ -73,7 +63,6 @@ app.put("/myfavorite", (req, res) => {
     User.findOne({ userName: userName })
         .then(result => {
             result.favoriteRestaurants.unshift(restaurantDetail); // novu restauraciu pridam na zaciatok Array listu
-            console.log(result.userName);
             result.save()
                 .then(result => res.json({ user: result }))// server vrati uz updatnuteho pouzivatela
                 .catch(error => console.log(error));
@@ -100,9 +89,3 @@ app.delete("/myfavorite", (req, res) => {
         })
         .catch(error => console.log(error));
 });
-
-app.use('/.netlify/functions/server', router);  // path must route to lambda
-app.use('/', (req, res) => res.sendFile(path.join(__dirname, '../index.html')));
-
-module.exports = app;
-module.exports.handler = serverless(app);
