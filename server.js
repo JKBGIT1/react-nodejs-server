@@ -5,9 +5,8 @@ const mongoose = require("mongoose");
 const User = require("./models/user"); // model of users, who are saved into DB
 
 // URL to DB and connection
-const URI = "mongodb+srv://dbUser:dbUser@cluster0.aiodd.mongodb.net/Cluster0?retryWrites=true&w=majority";
-mongoose.connect(URI, { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false })
-    .then(result => app.listen(5000)) // after succesful connection to DB starts server on port localhost:5000
+mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false })
+    .then(() => app.listen(process.env.PORT || 3000)) // after succesful connection to DB starts server on port localhost:5000
     .catch(error => console.log(error));
 
 app.use((req, res, next) => {
