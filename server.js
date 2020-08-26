@@ -44,18 +44,23 @@ app.get("/login", (req, res) => {
         });
 });
 
-app.post("/signup", (req, res) => {
+app.post("/signup", async (req, res) => {
     const userName = req.body.userName;
     // if user exists, then server will return null
-    User.find({ userName: userName })
-        .then(() => res.json({ user: null }))
-        .catch(() => {
-            // otherwise new user will be created and data about him will be send bac
+    try {
+        const userExists = await User.find({ userName });
+
+        if (userExists.length === 0) { // this means, that user with this user name doesn't exists
             const user = new User(req.body); // get data about new user
             user.save()
-                .then(result => res.json({ user })) // after succesful save returns data about user
+                .then(() => res.json({ user })) // after succesful save returns data about user
                 .catch(error => console.log(error)); // print error into console
-        });
+        } else { // user with entered user name exists, so server return null
+            res.json({ user: null });
+        }
+    } catch (error) {
+        console.log(error);
+    }
 });
 
 app.put("/myfavorite", (req, res) => {
